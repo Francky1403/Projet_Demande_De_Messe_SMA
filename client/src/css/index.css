@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes slideup {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+}
+  
+.animate-slideup {
+    animation: slideup 2s ease-out forwards;
+}
+  
+html,
+:host {
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
