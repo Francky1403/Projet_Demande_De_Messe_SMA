@@ -83,17 +83,18 @@ const Homes = () => {
   };
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, photo: e.target.files[0] });
-  };
-
+    const file = e.target.files?.[0] || null;
+    setFormData({ ...formData, photo: file });
+  };  
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const formPayload = new FormData();
     Object.keys(formData).forEach((key) => {
       formPayload.append(key, formData[key]);
     });
-
+  
     try {
       await axios.post('http://localhost:3000/api/demande', formPayload, {
         headers: {
@@ -106,10 +107,10 @@ const Homes = () => {
       alert('Erreur lors de la soumission du formulaire : ' + error.message);
     }
   };
+  
 
   return (
     <div className="relative h-screen bg-gray-100">
-      {/* Image Carousel */}
       {transitions((style, item) => (
         <animated.div
           key={item}
@@ -183,51 +184,31 @@ const Homes = () => {
                 <label className="block text-gray-700">Intention <span className="text-red-500 font-bold">**</span></label>
                 <textarea name="intention" className="w-full px-4 py-2 border rounded" value={formData.intention} onChange={handleChange} required></textarea>
               </div>
-              <p className="text-center text-black-700 font-bold mt-2">Faire un don</p>
+              <p className="text-center text-black-700 font-bold  mt-2">Faire un don</p>
               <hr /><hr /><hr />
-              <p className="text-center text-red-700 font-bold mt-2">Attention!!</p>
-              <p className="text-center text-black-700 font-bold mt-2">Le prélèvement par Carte Bancaire a pour devise le $ et le prélèvement par Mobile Money a pour devise le FCFA </p>
+              <p className="text-center text-red-700 font-bold  mt-2">Attention!!</p>
+              <p className="text-center text-black-700 font-bold  mt-2">Le prélèvement par Carte Bancaire a pour devise le $ et le prélèvement par Mobile Money a pour devise le FCFA </p>
               <br />
               <div className="mb-4">
-                <label className="block text-gray-700">Montant (USD)</label>
-                <input
-                  type="text"
-                  name="amount"
-                  className="w-full px-4 py-2 border rounded"
-                  value={formData.amount}
-                  onChange={handleChange}
-                />
+                <label className="block text-gray-700">Prix ($ ou FCFA)</label>
+                <input type="number" name="prix" className="w-full px-4 py-2 border rounded" value={formData.prix} onChange={handleChange} />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700">Méthode de Paiement</label>
+                <label className="block text-gray-700">Sélection du mode de paiement</label>
                 <select
-                  name="paymentMethod"
-                  className="w-full px-4 py-2 border rounded"
                   value={formData.paymentMethod}
                   onChange={handleChange}
+                  name="paymentMethod"
+                  className="w-full px-4 py-2 border rounded"
                 >
                   <option value="">Sélectionnez une option</option>
-                  <option value="carte bancaire">Carte Bancaire</option>
-                  <option value="mobile money">Mobile Money</option>
+                  <option value="cb">Carte bancaire</option>
+                  <option value="mobileMoney">Mobile Money</option>
                 </select>
               </div>
-              {formData.paymentMethod === 'carte bancaire' && (
-                <div className="mb-4">
-                  <label className="block text-gray-700">Email pour recevoir le reçu</label>
-                  <input
-                    type="email"
-                    name="receiptEmail"
-                    className="w-full px-4 py-2 border rounded"
-                    value={formData.receiptEmail}
-                    onChange={handleChange}
-                  />
-                </div>
-              )}
-              <div className="text-center">
-                <button type="submit" className="px-6 py-3 bg-green-500 text-white font-bold rounded">
-                  Soumettre
-                </button>
-              </div>
+              <button type="submit" className="w-full px-6 py-3 bg-blue-500 text-white font-bold rounded">
+                Soumettre
+              </button>
             </form>
           </div>
         )}
@@ -242,7 +223,7 @@ const Homes = () => {
         <p className="text-gray-700">Notre mission est de servir et aider la communauté.</p>
       </div>
       <animated.div className="p-4 bg-white shadow-md rounded-lg transform transition-transform duration-300 scale-105 shadow-xl shadow-gray-400 cursor-pointer" style={springProps}>
-        <h2 className="text-2xl font-semibold">SMA-Togo</h2>
+        <h2 className="text-2xl font-semibold">SMA-Togo TV</h2>
         <p className="text-gray-700">La SMA du Togo est une société missionnaire d'origine catholique.</p>
       </animated.div>
       <div className="p-4 bg-white shadow-md rounded-lg transform transition-transform duration-300 scale-95 shadow-l shadow-yellow-300 cursor-pointer">
@@ -304,6 +285,9 @@ const Homes = () => {
       </animated.a>
 
         </div>
+        <p>
+          <span href="http://www.horizonsmarttech.com" className="text-black-600">Dev by: <a className="text-red-600 underline">Horizon Smart Technologies</a> </span>
+        </p>
       </footer>
     </div>
   );

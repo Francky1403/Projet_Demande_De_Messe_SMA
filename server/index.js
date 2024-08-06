@@ -7,6 +7,10 @@ const { User, Demande, Payment, sequelize } = require('./models');
 const SECRET_KEY = 'Jesus_christ_sauveur';
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
+const path = require('path');
+const fs = require('fs');
+const { Customer } = require ('fedapay');
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,11 +22,26 @@ app.use(cors({
 }));
 app.options('*', cors());
 
-const upload = multer({ dest: 'uploads/' });
+// Configuration du stockage des fichiers
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      cb(null, 'uploads/'); 
+  },
+  filename: function (req, file, cb) {
+    var uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    var ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
 
-// route pour creer une demande
+const upload = multer({ storage });
+
+// faire la route pour le fedapay
+
+
+
+// Route pour créer une demande
 app.post('/api/demande', upload.single('photo'), [
-  
   body('type').notEmpty().withMessage('Le type est requis.'),
   body('name').notEmpty().withMessage('Le nom est requis.'),
   body('firstName').notEmpty().withMessage('Le prénom est requis.'),
@@ -39,13 +58,12 @@ app.post('/api/demande', upload.single('photo'), [
   }
 
   const { type, name, firstName, email, country, phone, intention, prix, paymentMethod } = req.body;
-  const photo = req.file ? req.file.filename : null;
+  const photo = req.file;
 
   try {
-    console.log('Creating request...');
     const newRequest = await Demande.create({
       type,
-      photo,
+      photo: photo ? photo.filename : null,
       name,
       firstName,
       email,
@@ -53,7 +71,7 @@ app.post('/api/demande', upload.single('photo'), [
       phone,
       intention,
       prix,
-      payment: paymentMethod
+      payment: paymentMethod,
     });
 
     res.status(201).json({ newRequest });
@@ -78,34 +96,26 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send({ error: 'Erreur interne du serveur', details: err.message });
 });
-// app.js (ou server.js)
-app.post('/api/payment/success', async (req, res) => {
-  const { sessionId } = req.body;
 
-  try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    const demandeId = session.metadata.demandeId;
-    const receiptEmail = session.metadata.receipt_email;
+app.use('/uploads', express.static('uploads'));
 
-    await Payment.update({ status: 'paid' }, { where: { demandeId } });
-    await Demande.update({ traité: true }, { where: { id: demandeId } });
-
-    res.status(200).json({ message: 'Payment confirmed and records updated.' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Erreur lors de la confirmation du paiement', details: error.message });
-  }
-});
-
+// route pour afficher les messes
 app.get('/api/messe', async (req, res) => {
   try {
-    const demandes = await Demande.findAll();
-    res.json(demandes);
+    const requests = await Demande.findAll({
+      order: [['createdAt', 'DESC']] 
+    });
+
+    const requestsWithPhotoUrl = requests.map(request => ({
+      ...request.toJSON(),
+      photoUrl: request.photo ? `${req.protocol}://${req.get('host')}/uploads/${request.photo}` : null,
+    }));
+
+    res.json(requestsWithPhotoUrl);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch demandes' });
+    res.status(500).json({ message: 'Erreur lors de la récupération des demandes.' });
   }
 });
-
 
 // Route pour créer un utilisateur
 app.post('/api/utilisateur', async (req, res) => {
@@ -127,11 +137,12 @@ app.post('/api/utilisateur', async (req, res) => {
   }
 });// le createdby est là où sera stoker l'information de l'utilisateur createur
 
-
 // Route pour afficher les utilisateurs
 app.get('/api/user', async (req, res) => {
   try {
-    const users = await User.findAll();
+    const users = await User.findAll({
+      order: [['createdAt', 'DESC']] 
+    });
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch users' });
@@ -175,7 +186,7 @@ app.get('/api/user/:id', async (req, res) => {
 app.put('/api/user/:id', async (req, res) => {
   try {
     const userId = req.params.id;
-    const { username, email, profile } = req.body;
+    const { username, email, profile,} = req.body; 
 
     const user = await User.findByPk(userId);
 
@@ -186,16 +197,16 @@ app.put('/api/user/:id', async (req, res) => {
     user.username = username;
     user.email = email;
     user.profile = profile;
-    user.IsActive = IsActive;
     await user.save();
 
     res.json(user);
   } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'utilisateur:', error);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 });
 
-// Route pour modifier le password
+// Route pour modifier le password MonCompte
 app.put('/api/user/:id/password', async (req, res) => {
   try {
     const userId = req.params.id;
@@ -221,6 +232,7 @@ app.put('/api/user/:id/password', async (req, res) => {
   }
 });
 
+// Route pour modifier le password utilisateur
 app.put('/api/user/:id/passwords', async (req, res) => {
   try {
     const userId = req.params.id;
@@ -242,7 +254,6 @@ app.put('/api/user/:id/passwords', async (req, res) => {
   }
 });
 
-
 // Route pour se déconnecter
 app.post('/api/logout', (req, res) => {
   try {
@@ -253,7 +264,6 @@ app.post('/api/logout', (req, res) => {
   }
 });
 
-  
 // Route pour se connecter
 app.post('/api/login', async (req, res) => {
   const email = req.body.email
@@ -284,7 +294,6 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de la connexion' });
   }
 });
-
 
 // Route pour obtenir le nombre total de demandes
 app.get('/api/stats/total-demande', async (req, res) => {
@@ -422,7 +431,7 @@ app.get('/api/stats/action-grace', async (req, res) => {
   }
 });
 
-// Route pour voir la statistique
+// Route pour voir la statistique messe par moi
 app.get('/api/messe-monthly-stats', async (req, res) => {
   try {
     
@@ -448,7 +457,7 @@ app.get('/api/messe-monthly-stats', async (req, res) => {
     res.status(500).json({ error: 'Erreur interne du serveur' });
   }
 });
-//
+
 app.get('/api/stats/mensuel-demandes', async (req, res) => {
   try {
     const demandes = await Demande.findAll({
@@ -518,8 +527,6 @@ app.put('/api/demandes/:id/traiter', async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 });
-
-
 
 // Route pour activer ou désactiver un utilisateur
 app.put('/api/utilisateurs/:id/statuts', async (req, res) => {

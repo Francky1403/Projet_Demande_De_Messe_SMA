@@ -144,13 +144,14 @@ const Utilisateur = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    console.log('Données envoyées pour la mise à jour :', selectedUser);
     try {
       await axios.put(`http://localhost:3000/api/user/${selectedUser.id}`, selectedUser);
       setUsers(users.map(user => user.id === selectedUser.id ? selectedUser : user));
       toast.success('Utilisateur mis à jour avec succès !');
       handleEditModalClose();
     } catch (error) {
-      console.error('Failed to update user:', error);
+      console.error('Échec de la mise à jour de l\'utilisateur :', error);
       toast.error('Échec de la mise à jour de l\'utilisateur.');
     }
   };
@@ -184,7 +185,7 @@ const Utilisateur = () => {
         ['Nom d\'utilisateur', user.username],
         ['Email', user.email],
         ['Profil', user.profile],
-        ['Date de Création', new Date(request.createdAt).toLocaleDateString()],
+        ['Date de Création', new Date(user.createdAt).toLocaleDateString()],
         ['Statut', user.isActive ? 'A Activer' : 'A Désactiver']
       ]
     });
@@ -386,8 +387,8 @@ const Utilisateur = () => {
       </button>
     </form>
   </div>
-</Modal>
-<Modal
+      </Modal>
+      <Modal
   isOpen={isViewModalOpen}
   onRequestClose={handleViewModalClose}
   contentLabel="Voir les informations de l'utilisateur"
@@ -412,8 +413,8 @@ const Utilisateur = () => {
       </>
     )}
   </div>
-</Modal>
-<Modal
+      </Modal>
+      <Modal
   isOpen={isEditModalOpen}
   onRequestClose={handleEditModalClose}
   contentLabel="Modifier Utilisateur"
@@ -477,8 +478,8 @@ const Utilisateur = () => {
       </>
     )}
   </div>
-</Modal>
-<Modal
+      </Modal>
+      <Modal
   isOpen={isPassModalOpen}
   onRequestClose={handlePassModalClose}
   contentLabel="Modifier Mot de Passe"
@@ -516,8 +517,7 @@ const Utilisateur = () => {
       </>
     )}
   </div>
-</Modal>
-
+      </Modal>
     </div>
   );
 };

@@ -8,6 +8,7 @@ import Statistique from './composant/Statistique';
 import Utilisateur from './composant/Utilisateur';
 import MonCompte from './composant/MonCompte';
 import PrivateRoute from './composant/PrivateRoute';
+import ConfirmationPage from './composant/ConfirmationPage';
 
 
 
@@ -16,6 +17,7 @@ const App = () => {
     <div>
       <Routes>
         <Route path="/" element={<Homes />} />
+        <Route path="/ConfirmePage" element={<ConfirmationPage />} />
         <Route path="/Login-Admin" element={<Login />} />
         <Route 
           path="/*" 
@@ -25,18 +27,18 @@ const App = () => {
               <div className="flex-1 p-4">
                 <Routes>
                   <Route 
-                    path="/messe" 
-                    element={
-                      <PrivateRoute>
-                        <Messe />
-                      </PrivateRoute>
-                    } 
-                  />
-                  <Route 
                     path="/statistique" 
                     element={
                       <PrivateRoute>
                         <Statistique />
+                      </PrivateRoute>
+                    } 
+                  />
+                   <Route 
+                    path="/messe" 
+                    element={
+                      <PrivateRoute>
+                        <Messe />
                       </PrivateRoute>
                     } 
                   />

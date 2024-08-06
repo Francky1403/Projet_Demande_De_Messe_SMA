@@ -6,6 +6,7 @@ import { faEye, faDownload, faTimes, } from '@fortawesome/free-solid-svg-icons';
 import Modal from 'react-modal';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import 'jspdf-autotable';
 import Papa from 'papaparse';
 
 
@@ -85,11 +86,37 @@ const Messe = () => {
     }
   };
 
-  const handleDownloadRequestPDF = (request) => {
+  const handleDownloadRequestPDF = async (request) => {
     const doc = new jsPDF();
     doc.text("Informations de la messe", 10, 10);
+  
+    // Convertir l'image en base64 en utilisant canvas
+    let imgData = '';
+    if (request.photoUrl) {
+      const image = new Image();
+      image.crossOrigin = 'Anonymous'; // Pour les images d'un domaine différent
+      image.src = request.photoUrl;
+  
+      await new Promise((resolve) => {
+        image.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = image.width;
+          canvas.height = image.height;
+          ctx.drawImage(image, 0, 0);
+          imgData = canvas.toDataURL('image/jpeg');
+          resolve();
+        };
+      });
+    }
+  
+    // Ajouter l'image au PDF
+    if (imgData) {
+      doc.addImage(imgData, 'JPEG', 10, 20, 50, 50); // Ajustez les coordonnées et la taille selon vos besoins
+    }
+  
     autoTable(doc, {
-      startY: 20,
+      startY: 80, // Assurez-vous que le texte et l'image ne se chevauchent pas
       head: [['Champ', 'Valeur']],
       body: [
         ['Type de Messe', request.type],
@@ -103,36 +130,94 @@ const Messe = () => {
         ['Mode de Paiement', request.payment],
         ['Date de Création', new Date(request.createdAt).toLocaleDateString()],
         ['Statut', request.traite ? 'Traité' : 'En attente']
-    ]
+      ]
     });
-    doc.save(`${request.type}_details.pdf`);
+    doc.save(`${request.type}_${request.name}_details.pdf`);
   };
-
-  const handleDownloadTablesPDF = () => {
+  
+  const handleDownloadTablesPDF = async () => {
     const doc = new jsPDF();
-    doc.text("Liste des messes", 10, 10);
+  
+    // Fonction pour convertir les images en base64
+    const convertImageToBase64 = (url) => {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.crossOrigin = 'Anonymous'; // Pour les images d'un domaine différent
+        image.src = url;
+        image.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = image.width;
+          canvas.height = image.height;
+          ctx.drawImage(image, 0, 0);
+          resolve(canvas.toDataURL('image/jpeg'));
+        };
+        image.onerror = (error) => {
+          console.error('Image failed to load:', error);
+          reject(error);
+        };
+      });
+    };
+  
+    // Préparer les données avec les images en base64
+    const requestsWithImages = await Promise.all(requests.map(async (request) => {
+      let imgData = '';
+      if (request.photoUrl) {
+        try {
+          imgData = await convertImageToBase64(request.photoUrl);
+        } catch (error) {
+          console.error('Error converting image to base64:', error);
+        }
+      }
+      return {
+        ...request,
+        imgData
+      };
+    }));
+  
+    // Configurer autoTable
     autoTable(doc, {
       startY: 20,
-      head: [['Type de Messe', 'Nom', 'Prénom', 'Email', 'Pays', 'Téléphone', 'Intention', 'Prix', 'Paiement', 'Date de Création', 'Statut']],
-      body : requests.map(request => [
-        request.type, 
-        request.name, 
-        request.firstName, 
-        request.email, 
-        request.country, 
-        request.phone, 
-        request.intention, 
-        request.prix, 
-        request.payment, 
-        new Date(request.createdAt).toLocaleDateString(), 
-        request.traite ? 'Traité' : 'En attente' 
-      ])
+      head: [['Photo', 'Type de Messe', 'Nom', 'Prénom', 'Email', 'Pays', 'Téléphone', 'Intention', 'Prix', 'Paiement', 'Date de Création', 'Statut']],
+      body: requestsWithImages.map(request => [
+        request.imgData ? { image: request.imgData, width: 20, height: 20 } : '',
+        String(request.type),
+        String(request.name),
+        String(request.firstName),
+        String(request.email),
+        String(request.country),
+        String(request.phone),
+        String(request.intention),
+        String(request.prix),
+        String(request.payment),
+        String(new Date(request.createdAt).toLocaleDateString()),
+        request.traite ? 'Traité' : 'En attente'
+      ]),
+      columnStyles: {
+        0: { cellWidth: 20 },
+      },
+      margin: { top: 20 },
     });
+  
     doc.save('request.pdf');
   };
+  
 
   const handleDownloadTablesCSV = () => {
-    const csv = Papa.unparse(users);
+    const csv = Papa.unparse(requests.map(request => ({
+      'Type de Messe': request.type,
+      'Nom': request.name,
+      'Prénom': request.firstName,
+      'Email': request.email,
+      'Pays': request.country,
+      'Téléphone': request.phone,
+      'Intention de Messe': request.intention,
+      'Type de Paiement': request.payment,
+      'Montant': request.prix,
+      'Date': new Date(request.createdAt).toLocaleDateString(),
+      'Statut': request.traite ? 'Traité' : 'En attente',
+      'Photo URL': request.photoUrl || 'Aucune photo' // Ajouter l'URL de la photo
+    })));
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -161,38 +246,38 @@ const Messe = () => {
         <table className="w-full min-w-[1200px] bg-white shadow-md rounded mb-4">
           <thead>
             <tr>
-              <th className="px-2 sm:px-4 py-2">Type de Messe</th>
-              <th className="px-2 sm:px-4 py-2">Photo</th>
-              <th className="px-2 sm:px-4 py-2">Nom</th>
-              <th className="px-2 sm:px-4 py-2">Prénom</th>
-              <th className="px-2 sm:px-4 py-2">Email</th>
-              <th className="px-2 sm:px-4 py-2">Pays</th>
-              <th className="px-2 sm:px-4 py-2">Numéro de Téléphone</th>
-              <th className="px-2 sm:px-4 py-2">Intention de Messe</th>
-              <th className="px-2 sm:px-4 py-2">Montant</th>
-              <th className="px-2 sm:px-4 py-2">Type de Paiement</th>
-              <th className="px-2 sm:px-4 py-2">Date</th>
-              <th className="px-2 sm:px-4 py-2">Statut</th>
-              <th className="px-2 sm:px-4 py-2">Action</th>
+              <th className="px-2 sm:px-2 py-2">Type de Messe</th>
+              <th className="py-2 px-2 sm:px-2 bg-gray-200 text-gray-600 border">Photo</th>
+              <th className="px-2 sm:px-2 py-2">Nom</th>
+              <th className="px-2 sm:px-2 py-2">Prénom</th>
+              <th className="px-2 sm:px-2 py-2">Email</th>
+              <th className="px-2 sm:px-2 py-2">Pays</th>
+              <th className="px-2 sm:px-2 py-2">Numéro de Téléphone</th>
+              <th className="px-2 sm:px-2 py-2">Intention de Messe</th>
+              <th className="px-2 sm:px-2 py-2">Type de Paiement</th>
+              <th className="px-2 sm:px-2 py-2">Montant</th>
+              <th className="px-2 sm:px-2 py-2">Date</th>
+              <th className="px-2 sm:px-2 py-2">Statut</th>
+              <th className="px-2 sm:px-2 py-2">Action</th>
             </tr>
           </thead>
           <tbody>
             {currentRequests.map((request) => (
               <tr key={request.id}>
-                <td className="border px-2 sm:px-4 py-2">{request.type}</td>
-                <td className="border px-2 sm:px-4 py-2">
-                  <img src={request.photo || 'default_photo_path.jpg'} alt="Photo" className="w-16 h-16 object-cover" />
+                <td className="border px-2 sm:px-2 py-2">{request.type}</td>
+                <td className="border px-2 sm:px- py-2">
+                {request.photoUrl && <img src={request.photoUrl} alt="Messe" className="w-20 h-auto rounded-full" />}
                 </td>
-                <td className="border px-2 sm:px-4 py-2">{request.name}</td>
-                <td className="border px-2 sm:px-4 py-2">{request.firstName}</td>
-                <td className="border px-2 sm:px-4 py-2">{request.email}</td>
-                <td className="border px-2 sm:px-4 py-2">{request.country}</td>
-                <td className="border px-2 sm:px-4 py-2">{request.phone}</td>
-                <td className="border px-2 sm:px-4 py-2">{request.intention}</td>
-                <td className="border px-2 sm:px-4 py-2">{request.payment}</td>
-                <td className="border px-2 sm:px-4 py-2">{request.prix}</td>
-                <td className="border px-2 sm:px-4 py-2">{new Date(request.createdAt).toLocaleDateString()}</td>
-                <td className="border px-2 sm:px-4 py-2">
+                <td className="border px-2 sm:px-2 py-2">{request.name}</td>
+                <td className="border px-2 sm:px-2 py-2">{request.firstName}</td>
+                <td className="border px-2 sm:px-2 py-2">{request.email}</td>
+                <td className="border px-2 sm:px-2 py-2">{request.country}</td>
+                <td className="border px-2 sm:px-2 py-2">{request.phone}</td>
+                <td className="border px-2 sm:px-2 py-2">{request.intention}</td>
+                <td className="border px-2 sm:px-2 py-2">{request.payment}</td>
+                <td className="border px-2 sm:px-2 py-2">{request.prix}</td>
+                <td className="border px-2 sm:px-2 py-2">{new Date(request.createdAt).toLocaleDateString()}</td>
+                <td className="border px-2 sm:px-2 py-2">
                   <button 
                     onClick={() => toggleRequestStatus(request.id)}
                     className={`px-4 py-2 rounded ${request.traité ? 'bg-red-500' : 'bg-green-500'} text-white`}
@@ -200,7 +285,7 @@ const Messe = () => {
                     {request.traité ? 'En attente' : 'Traité' }
                   </button>
                 </td>
-                <td className="border px-2 sm:px-4 py-2">
+                <td className="border px-2 sm:px-2 py-2">
                 <button onClick={() => handleViewModalOpen(request)} className="text-blue-700">
                     <FontAwesomeIcon icon={faEye} />
                   </button>
@@ -212,7 +297,7 @@ const Messe = () => {
             ))}
           </tbody>
         </table>
-      </div>
+      
       <div className="flex justify-between">
         <button 
           onClick={handlePreviousPage} 
@@ -237,6 +322,7 @@ const Messe = () => {
             Télécharger en CSV
           </button>
       </div>
+      </div>
       <Modal
   isOpen={isViewModalOpens}
   onRequestClose={handleViewModalCloses}
@@ -253,8 +339,11 @@ const Messe = () => {
     </button>
     {selectedRequest && (
       <>
-        <h2 className="text-2xl mb-4 font-bold">Informations de la messe</h2>
-        <p><strong>Type de Messe:</strong> {selectedRequest.type}</p>
+    <h2 className="text-2xl mb-4 font-bold">Informations de la messe</h2>
+      <div>
+        {selectedRequest.photoUrl && <img src={selectedRequest.photoUrl} alt="Messe" className="w-40 h-auto rounded-full" />}
+      </div>
+    <p><strong>Type de Messe:</strong> {selectedRequest.type}</p>
     <p><strong>Nom:</strong> {selectedRequest.name}</p>
     <p><strong>Prénom:</strong> {selectedRequest.firstName}</p>
     <p><strong>Email:</strong> {selectedRequest.email}</p>
@@ -268,7 +357,7 @@ const Messe = () => {
       </>
     )}
   </div>
-</Modal>
+      </Modal>
       </div>
   );
 };
