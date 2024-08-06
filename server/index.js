@@ -9,7 +9,7 @@ const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const path = require('path');
 const fs = require('fs');
-const { Customer } = require ('fedapay');
+
 
 
 const app = express();
@@ -37,7 +37,42 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // faire la route pour le fedapay
+const { FedaPay, Transaction } = require('fedapay')
 
+  /* Remplacez VOTRE_CLE_API par votre véritable clé API */
+  FedaPay.setApiKey("sk_sandbox_6mXDigdkhoetPcb-JOfOn2aD");
+
+  /* Précisez si vous souhaitez exécuter votre requête en mode test ou live */
+  FedaPay.setEnvironment('sandbox'); //ou setEnvironment('live');
+
+  /* Créer la transaction */
+  app.post('/api/fedapay', async (req, res) => {
+    const { amount, currency, description, callback_url, customer } = req.body;
+  
+    try {
+      // Assurez-vous que vous utilisez la bonne méthode pour créer une transaction
+      const transaction = await Transaction.create({
+        description,
+        amount,
+        callback_url,
+        currency: { iso: currency },
+        customer: {
+          firstname: customer.firstname,
+          lastname: customer.lastname,
+          email: customer.email,
+          phone_number: {
+            number: customer.phone_number.number,
+            country: customer.phone_number.country
+          }
+        }
+      });
+  
+      res.json({ paymentUrl: transaction.generateToken().url });
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Erreur lors de la création de la transaction FedaPay', details: error.message });
+    }
+  });
 
 
 // Route pour créer une demande
@@ -96,6 +131,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send({ error: 'Erreur interne du serveur', details: err.message });
 });
+
 
 app.use('/uploads', express.static('uploads'));
 

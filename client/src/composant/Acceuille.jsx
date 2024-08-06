@@ -7,6 +7,8 @@ import img2 from '../assets/IMG_8301.JPG';
 import img3 from '../assets/IMG-20230208-WA0149.jpg';
 import { FaTwitter, FaInstagram, FaYoutube, FaFacebook, FaTiktok } from 'react-icons/fa';
 import '../css/index.css'
+import Toastify from 'toastify-js';
+import 'toastify-js/src/toastify.css';
 
 const images = [img1, img2, img3];
 
@@ -87,7 +89,7 @@ const Homes = () => {
     setFormData({ ...formData, photo: file });
   };  
   
-  const handleSubmit = async (e) => {
+  /*const handleSubmit = async (e) => {
     e.preventDefault();
   
     const formPayload = new FormData();
@@ -106,7 +108,101 @@ const Homes = () => {
       console.error('Erreur lors de la soumission du formulaire:', error);
       alert('Erreur lors de la soumission du formulaire : ' + error.message);
     }
+  };*/
+
+  const validatePhoneNumber = (number) => {
+    // Regex to match phone numbers in Togo
+    const phoneRegex = /^[0-9]{8}$/;
+    return phoneRegex.test(number);
   };
+  
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+  
+    // Préparer les données de la demande
+    const requestData = {
+      type: formData.type,
+      name: formData.name,
+      firstName: formData.firstName,
+      email: formData.email,
+      country: formData.country,
+      phone: formData.phone,
+      intention: formData.intention,
+      prix: formData.prix,
+      paymentMethod: formData.paymentMethod,
+    };
+  
+    // Ajouter la photo si elle est présente
+    const formDataForUpload = new FormData();
+    formDataForUpload.append('type', requestData.type);
+    formDataForUpload.append('name', requestData.name);
+    formDataForUpload.append('firstName', requestData.firstName);
+    formDataForUpload.append('email', requestData.email);
+    formDataForUpload.append('country', requestData.country);
+    formDataForUpload.append('phone', requestData.phone);
+    formDataForUpload.append('intention', requestData.intention);
+    formDataForUpload.append('prix', requestData.prix);
+    formDataForUpload.append('paymentMethod', requestData.paymentMethod);
+  
+    if (formData.photo) {
+      formDataForUpload.append('photo', formData.photo);
+    }
+  
+    try {
+      // Envoyer la demande à l'API
+      const response = await axios.post('http://localhost:3000/api/demande', formDataForUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      console.log('Demande créée:', response.data);
+  
+      // Si la demande est créée avec succès, procéder au paiement
+      const paymentData = {
+        description: 'Paiement pour la demande de messe',
+        amount: formData.prix * 100, // Montant en centimes
+        callback_url: 'http://localhost:5173/ConfirmePage',
+        currency: 'XOF', // Vérifiez ce format
+        customer: {
+          firstname: formData.firstName,
+          lastname: formData.name,
+          email: formData.email,
+          phone_number: {
+            number: formData.phone,
+            country: formData.country // Vérifiez ce format
+          }
+        }
+      };
+  
+      // Créer une transaction FedaPay
+      console.log('Données de paiement:', paymentData); // Ajouter un log pour vérifier les données envoyées
+      const paymentResponse = await axios.post('https://sandbox-api.fedapay.com/v1/transactions', paymentData, {
+        headers: {
+          'Authorization': 'Bearer sk_sandbox_6mXDigdkhoetPcb-JOfOn2aD',
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      // Rediriger vers la page de confirmation de paiement si la transaction est créée avec succès
+      window.location.href = paymentResponse.data.callback_url;
+    } catch (error) {
+      console.error('Erreur lors de la création de la demande ou du paiement:', error);
+      console.error('Détails de l\'erreur:', error.response?.data || error.message);
+  
+      // Gérer les erreurs et afficher une notification
+      Toastify({
+        text: error.response?.data?.message || 'Une erreur est survenue',
+        duration: 5000,
+        close: true,
+        gravity: 'top',
+        position: 'right',
+        background: 'linear-gradient(to right, #ff5f6d, #ffc371)',
+      }).showToast();
+    }
+  };
+  
+  
+  
   
 
   return (
@@ -138,78 +234,79 @@ const Homes = () => {
             <p>Les champs avec <span className="text-red-500 font-bold">**</span> sont obligatoires</p>
             <br />
             <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-gray-700">Type de Messe <span className="text-red-500 font-bold">**</span></label>
-                <select
-                  value={formData.type}
-                  onChange={handleTypeChange}
-                  name="type"
-                  className="w-full px-4 py-2 border rounded"
-                  required
-                >
-                  <option value="">Sélectionnez une option</option>
-                  <option value="messe d'anniversaire">Messe d'anniversaire</option>
-                  <option value="messe de décès">Messe de décès</option>
-                  <option value="intention particulière">Intention particulière</option>
-                  <option value="action de grâce">Action de grâce</option>
-                </select>
-              </div>
-              {formData.showPhotoUpload && (
-                <div className="mb-4">
-                  <label className="block text-gray-700">Télécharger une photo</label>
-                  <input type="file" className="w-full px-4 py-2 border rounded" onChange={handleFileChange}/>
-                </div>
-              )}
-              <div className="mb-4">
-                <label className="block text-gray-700">Nom <span className="text-red-500 font-bold">**</span></label>
-                <input type="text" name="name" className="w-full px-4 py-2 border rounded" value={formData.name} onChange={handleChange} required/>
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Prénom <span className="text-red-500 font-bold">**</span></label>
-                <input type="text" name="firstName" className="w-full px-4 py-2 border rounded" value={formData.firstName} onChange={handleChange} required />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Email <span className="text-red-500 font-bold">**</span></label>
-                <input type="email" name="email" className="w-full px-4 py-2 border rounded" value={formData.email} onChange={handleChange} required />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Pays <span className="text-red-500 font-bold">**</span></label>
-                <input type="text" name="country" className="w-full px-4 py-2 border rounded" value={formData.country} onChange={handleChange} required/>
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Téléphone <span className="text-red-500 font-bold">**</span></label>
-                <input type="text" name="phone" className="w-full px-4 py-2 border rounded" value={formData.phone} onChange={handleChange} required />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Intention <span className="text-red-500 font-bold">**</span></label>
-                <textarea name="intention" className="w-full px-4 py-2 border rounded" value={formData.intention} onChange={handleChange} required></textarea>
-              </div>
-              <p className="text-center text-black-700 font-bold  mt-2">Faire un don</p>
-              <hr /><hr /><hr />
-              <p className="text-center text-red-700 font-bold  mt-2">Attention!!</p>
-              <p className="text-center text-black-700 font-bold  mt-2">Le prélèvement par Carte Bancaire a pour devise le $ et le prélèvement par Mobile Money a pour devise le FCFA </p>
-              <br />
-              <div className="mb-4">
-                <label className="block text-gray-700">Prix ($ ou FCFA)</label>
-                <input type="number" name="prix" className="w-full px-4 py-2 border rounded" value={formData.prix} onChange={handleChange} />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Sélection du mode de paiement</label>
-                <select
-                  value={formData.paymentMethod}
-                  onChange={handleChange}
-                  name="paymentMethod"
-                  className="w-full px-4 py-2 border rounded"
-                >
-                  <option value="">Sélectionnez une option</option>
-                  <option value="cb">Carte bancaire</option>
-                  <option value="mobileMoney">Mobile Money</option>
-                </select>
-              </div>
-              <button type="submit" className="w-full px-6 py-3 bg-blue-500 text-white font-bold rounded">
-                Soumettre
-              </button>
-            </form>
+  <div className="mb-4">
+    <label className="block text-gray-700">Type de Messe <span className="text-red-500 font-bold">**</span></label>
+    <select
+      value={formData.type}
+      onChange={handleTypeChange}
+      name="type"
+      className="w-full px-4 py-2 border rounded"
+      required
+    >
+      <option value="">Sélectionnez une option</option>
+      <option value="messe d'anniversaire">Messe d'anniversaire</option>
+      <option value="messe de décès">Messe de décès</option>
+      <option value="intention particulière">Intention particulière</option>
+      <option value="action de grâce">Action de grâce</option>
+    </select>
+  </div>
+  {formData.showPhotoUpload && (
+    <div className="mb-4">
+      <label className="block text-gray-700">Télécharger une photo</label>
+      <input type="file" className="w-full px-4 py-2 border rounded" onChange={handleFileChange}/>
+    </div>
+  )}
+  <div className="mb-4">
+    <label className="block text-gray-700">Nom <span className="text-red-500 font-bold">**</span></label>
+    <input type="text" name="name" className="w-full px-4 py-2 border rounded" value={formData.name} onChange={handleChange} required/>
+  </div>
+  <div className="mb-4">
+    <label className="block text-gray-700">Prénom <span className="text-red-500 font-bold">**</span></label>
+    <input type="text" name="firstName" className="w-full px-4 py-2 border rounded" value={formData.firstName} onChange={handleChange} required />
+  </div>
+  <div className="mb-4">
+    <label className="block text-gray-700">Email <span className="text-red-500 font-bold">**</span></label>
+    <input type="email" name="email" className="w-full px-4 py-2 border rounded" value={formData.email} onChange={handleChange} required />
+  </div>
+  <div className="mb-4">
+    <label className="block text-gray-700">Pays <span className="text-red-500 font-bold">**</span></label>
+    <input type="text" name="country" className="w-full px-4 py-2 border rounded" value={formData.country} onChange={handleChange} required/>
+  </div>
+  <div className="mb-4">
+    <label className="block text-gray-700">Téléphone <span className="text-red-500 font-bold">**</span></label>
+    <input type="text" name="phone" className="w-full px-4 py-2 border rounded" value={formData.phone} onChange={handleChange} required />
+  </div>
+  <div className="mb-4">
+    <label className="block text-gray-700">Intention <span className="text-red-500 font-bold">**</span></label>
+    <textarea name="intention" className="w-full px-4 py-2 border rounded" value={formData.intention} onChange={handleChange} required></textarea>
+  </div>
+  <p className="text-center text-black-700 font-bold mt-2">Faire un don</p>
+  <hr /><hr /><hr />
+  <p className="text-center text-red-700 font-bold mt-2">Attention!!</p>
+  <p className="text-center text-black-700 font-bold mt-2">Le prélèvement par Carte Bancaire a pour devise le $ et le prélèvement par Mobile Money a pour devise le FCFA</p>
+  <br />
+  <div className="mb-4">
+    <label className="block text-gray-700">Prix ($ ou FCFA)</label>
+    <input type="number" name="prix" className="w-full px-4 py-2 border rounded" value={formData.prix} onChange={handleChange} />
+  </div>
+  <div className="mb-4">
+    <label className="block text-gray-700">Sélection du mode de paiement</label>
+    <select
+      value={formData.paymentMethod}
+      onChange={handleChange}
+      name="paymentMethod"
+      className="w-full px-4 py-2 border rounded"
+    >
+      <option value="">Sélectionnez une option</option>
+      <option value="cb">Carte bancaire</option>
+      <option value="mobileMoney">Mobile Money</option>
+    </select>
+  </div>
+  <button type="submit" className="w-full px-6 py-3 bg-blue-500 text-white font-bold rounded">
+    Soumettre
+  </button>
+</form>
+
           </div>
         )}
       </div>
