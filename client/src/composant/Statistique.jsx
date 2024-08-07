@@ -32,6 +32,7 @@ const Statistique = () => {
     utilisateursInActifs: 0,
     totalAmount: 0,
     totalAmountMobile: 0,
+    totalAmountCB: 0,
     messeData: [],
     pieData: [],
     monthlyData: []
@@ -54,15 +55,19 @@ const Statistique = () => {
         axios.get('http://localhost:3000/api/stats/demandes-non-traitees'),
         axios.get('http://localhost:3000/api/messe-monthly-stats'),
         axios.get('http://localhost:3000/api/messe-repartition'),
-        axios.get('http://localhost:3000/api/stats/mensuel-demandes')
+        axios.get('http://localhost:3000/api/stats/mensuel-demandes'),
+        axios.get('http://localhost:3000/api/total-prix'),
+        axios.get('http://localhost:3000/api/total-cb'),
+        axios.get('http://localhost:3000/api/total-mm')
       ]);
 
       const messeData = responses[12].data.messeData || [];
       const pieData = responses[13].data.pieData || [];
       const monthlyData = formatMonthlyData(responses[14].data);
 
-      const totalAmount = messeData.reduce((acc, curr) => acc + (curr.amount || 0), 0);
-      const totalAmountMobile = messeData.reduce((acc, curr) => acc + (curr.amountMobile || 0), 0);
+      const totalAmount = responses[15].data.total || 0;
+      const totalAmountCB = responses[16].data.total || 0;
+      const totalAmountMobile = responses[17].data.total || 0;
 
       setStats({
         totalUsers: responses[0].data.totalUtilisateurs || 0,
@@ -80,6 +85,7 @@ const Statistique = () => {
         messeData,
         pieData,
         totalAmount,
+        totalAmountCB,
         totalAmountMobile,
         monthlyData
       });
@@ -114,7 +120,6 @@ const Statistique = () => {
     { name: 'Intention Particulière', value: stats.totalintentionpart, color: '#FFBB28' },
     { name: 'Action de Grâce', value: stats.totalactiongrace, color: '#FF8042' }
   ];
-  
 
   return (
     <div className="p-6 sm:p-10 bg-gray-100 min-h-screen overflow-auto">
@@ -125,7 +130,7 @@ const Statistique = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <StatCard title="Total Montant Mobile Money" value={`${stats.totalAmountMobile} FCFA`} />
         <StatCard title="Total Montant Total" value={`${stats.totalAmount} FCFA`} />
-        <StatCard title="Total Montant Carte Bancaire" value={`${stats.totalAmount} FCFA`} />
+        <StatCard title="Total Montant Carte Bancaire" value={`${stats.totalAmountCB} FCFA`} />
         <StatCard title="Total Demandes de Messe Traitées" value={stats.totalMesseRequestsTraite} />
         <StatCard title="Total Demandes de Messes" value={stats.totalMesseRequests} />
         <StatCard title="Total Demandes de Messe Non Traitées" value={stats.totalMesseRequestsNTraite} />
@@ -183,8 +188,8 @@ const Statistique = () => {
         </div>
       </div>
 
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 text-gray-700">Demandes de Messe par Mois</h2>
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-700">Répartition Mensuelle des Demandes de Messe</h2>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={stats.monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -204,9 +209,9 @@ const Statistique = () => {
 };
 
 const StatCard = ({ title, value }) => (
-  <div className="p-4 bg-white shadow rounded-lg">
-    <h3 className="text-xl font-semibold text-gray-700">{title}</h3>
-    <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
+  <div className="bg-white shadow-lg rounded-lg p-4 text-center">
+    <h3 className="text-lg font-medium text-gray-800">{title}</h3>
+    <p className="text-2xl font-semibold text-gray-600 mt-2">{value}</p>
   </div>
 );
 

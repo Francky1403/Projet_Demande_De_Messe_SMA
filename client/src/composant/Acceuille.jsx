@@ -7,8 +7,7 @@ import img2 from '../assets/IMG_8301.JPG';
 import img3 from '../assets/IMG-20230208-WA0149.jpg';
 import { FaTwitter, FaInstagram, FaYoutube, FaFacebook, FaTiktok } from 'react-icons/fa';
 import '../css/index.css'
-import Toastify from 'toastify-js';
-import 'toastify-js/src/toastify.css';
+
 
 const images = [img1, img2, img3];
 
@@ -24,7 +23,7 @@ const Homes = () => {
     country: '',
     phone: '',
     intention: '',
-    prix: '',
+    prix: 0,
     paymentMethod: '',
     amount: '',
     receiptEmail: '',
@@ -88,122 +87,57 @@ const Homes = () => {
     const file = e.target.files?.[0] || null;
     setFormData({ ...formData, photo: file });
   };  
-  
-  /*const handleSubmit = async (e) => {
+
+ const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
+    let widget =   FedaPay.init({
+      public_key: 'pk_sandbox_ugZWRqso4-kTIwkUc57Ktb-q',
+      transaction: {
+        amount: formData.prix,
+        description: 'Faire un don pour la messe',
+        callback_url: 'http://localhost:5173/ConfirmePage',
+      },
+      customer: {
+        email: formData.email,
+        lastname: formData.name,
+        firstname: formData.firstName,
+        phone: formData.phone
+      },
+   });
+
     const formPayload = new FormData();
     Object.keys(formData).forEach((key) => {
       formPayload.append(key, formData[key]);
     });
   
     try {
+      widget.open()
       await axios.post('http://localhost:3000/api/demande', formPayload, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
       alert('Formulaire soumis avec succès');
+     /* setFormData({
+          type: '',
+          photo: '',
+          name: '',
+          firstName: '',
+          email: '',
+          country: '',
+          phone: '',
+          intention: '',
+          prix: 0,
+          paymentMethod: '',
+        })
+          window.location.href = 'http://localhost:5173/ConfirmePage';*/
     } catch (error) {
       console.error('Erreur lors de la soumission du formulaire:', error);
       alert('Erreur lors de la soumission du formulaire : ' + error.message);
     }
-  };*/
-
-  const validatePhoneNumber = (number) => {
-    // Regex to match phone numbers in Togo
-    const phoneRegex = /^[0-9]{8}$/;
-    return phoneRegex.test(number);
   };
-  
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-  
-    // Préparer les données de la demande
-    const requestData = {
-      type: formData.type,
-      name: formData.name,
-      firstName: formData.firstName,
-      email: formData.email,
-      country: formData.country,
-      phone: formData.phone,
-      intention: formData.intention,
-      prix: formData.prix,
-      paymentMethod: formData.paymentMethod,
-    };
-  
-    // Ajouter la photo si elle est présente
-    const formDataForUpload = new FormData();
-    formDataForUpload.append('type', requestData.type);
-    formDataForUpload.append('name', requestData.name);
-    formDataForUpload.append('firstName', requestData.firstName);
-    formDataForUpload.append('email', requestData.email);
-    formDataForUpload.append('country', requestData.country);
-    formDataForUpload.append('phone', requestData.phone);
-    formDataForUpload.append('intention', requestData.intention);
-    formDataForUpload.append('prix', requestData.prix);
-    formDataForUpload.append('paymentMethod', requestData.paymentMethod);
-  
-    if (formData.photo) {
-      formDataForUpload.append('photo', formData.photo);
-    }
-  
-    try {
-      // Envoyer la demande à l'API
-      const response = await axios.post('http://localhost:3000/api/demande', formDataForUpload, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      console.log('Demande créée:', response.data);
-  
-      // Si la demande est créée avec succès, procéder au paiement
-      const paymentData = {
-        description: 'Paiement pour la demande de messe',
-        amount: formData.prix * 100, // Montant en centimes
-        callback_url: 'http://localhost:5173/ConfirmePage',
-        currency: 'XOF', // Vérifiez ce format
-        customer: {
-          firstname: formData.firstName,
-          lastname: formData.name,
-          email: formData.email,
-          phone_number: {
-            number: formData.phone,
-            country: formData.country // Vérifiez ce format
-          }
-        }
-      };
-  
-      // Créer une transaction FedaPay
-      console.log('Données de paiement:', paymentData); // Ajouter un log pour vérifier les données envoyées
-      const paymentResponse = await axios.post('https://sandbox-api.fedapay.com/v1/transactions', paymentData, {
-        headers: {
-          'Authorization': 'Bearer sk_sandbox_6mXDigdkhoetPcb-JOfOn2aD',
-          'Content-Type': 'application/json'
-        }
-      });
-  
-      // Rediriger vers la page de confirmation de paiement si la transaction est créée avec succès
-      window.location.href = paymentResponse.data.callback_url;
-    } catch (error) {
-      console.error('Erreur lors de la création de la demande ou du paiement:', error);
-      console.error('Détails de l\'erreur:', error.response?.data || error.message);
-  
-      // Gérer les erreurs et afficher une notification
-      Toastify({
-        text: error.response?.data?.message || 'Une erreur est survenue',
-        duration: 5000,
-        close: true,
-        gravity: 'top',
-        position: 'right',
-        background: 'linear-gradient(to right, #ff5f6d, #ffc371)',
-      }).showToast();
-    }
-  };
-  
-  
-  
-  
+ 
 
   return (
     <div className="relative h-screen bg-gray-100">
