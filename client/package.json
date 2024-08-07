@@ -17,6 +17,7 @@
     "@stripe/stripe-js": "^4.1.0",
     "autoprefixer": "^10.4.19",
     "axios": "^1.7.2",
+    "fedapay": "^1.2.3",
     "html2canvas": "^1.4.1",
     "json2csv": "^6.0.0-alpha.2",
     "jspdf": "^2.5.1",

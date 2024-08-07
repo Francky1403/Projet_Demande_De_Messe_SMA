@@ -94,8 +94,8 @@ const Homes = () => {
     let widget =   FedaPay.init({
       public_key: 'pk_sandbox_ugZWRqso4-kTIwkUc57Ktb-q',
       transaction: {
-        amount: formData.prix,
         description: 'Faire un don pour la messe',
+        amount: formData.prix,
         callback_url: 'http://localhost:5173/ConfirmePage',
       },
       customer: {
@@ -110,28 +110,26 @@ const Homes = () => {
     Object.keys(formData).forEach((key) => {
       formPayload.append(key, formData[key]);
     });
-  
+    widget.open()
     try {
-      widget.open()
       await axios.post('http://localhost:3000/api/demande', formPayload, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      alert('Formulaire soumis avec succès');
-     /* setFormData({
-          type: '',
-          photo: '',
-          name: '',
-          firstName: '',
-          email: '',
-          country: '',
-          phone: '',
-          intention: '',
-          prix: 0,
-          paymentMethod: '',
-        })
-          window.location.href = 'http://localhost:5173/ConfirmePage';*/
+      setFormData({
+        type: '',
+        photo: '',
+        name: '',
+        firstName: '',
+        email: '',
+        country: '',
+        phone: '',
+        intention: '',
+        prix: 0,
+        paymentMethod: '',
+      })
+         // window.location.href = 'http://localhost:5173/ConfirmePage';
     } catch (error) {
       console.error('Erreur lors de la soumission du formulaire:', error);
       alert('Erreur lors de la soumission du formulaire : ' + error.message);
