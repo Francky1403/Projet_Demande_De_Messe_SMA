@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import "../css/admin.css"
-import logo from '../assets/Logo1.png'; 
+import { Link } from 'react-router-dom';
+import "../css/admin.css";
+import logo from '../assets/Logo1.png';
 
 const ConfirmationPage = () => {
   const [loading, setLoading] = useState(true);
@@ -8,7 +9,7 @@ const ConfirmationPage = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 3000); // Adjust the timeout duration as needed
+    }, 3000); // Ajustez la durée du timeout si nécessaire
 
     return () => clearTimeout(timer);
   }, []);
@@ -47,6 +48,9 @@ const ConfirmationPage = () => {
             j'habiterai la maison du Seigneur <br />
             pour la durée de mes jours.
           </p>
+          <Link to="/" className="inline-block px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300">
+            Retour à l'accueil
+          </Link>
         </div>
       )}
     </div>

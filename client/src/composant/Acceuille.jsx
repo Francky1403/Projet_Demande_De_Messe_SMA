@@ -88,11 +88,12 @@ const Homes = () => {
     setFormData({ ...formData, photo: file });
   };  
 
- const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    let widget =   FedaPay.init({
-      public_key: 'pk_sandbox_ugZWRqso4-kTIwkUc57Ktb-q',
+  
+    // Initialisation du widget de paiement
+    const widget = FedaPay.init({
+      public_key: 'pk_live_l5M1jWyDSP2-fq5RBO1NZfEE',
       transaction: {
         description: 'Faire un don pour la messe',
         amount: formData.prix,
@@ -102,40 +103,49 @@ const Homes = () => {
         email: formData.email,
         lastname: formData.name,
         firstname: formData.firstName,
-        phone: formData.phone
+        phone: formData.phone,
       },
-   });
-
-    const formPayload = new FormData();
-    Object.keys(formData).forEach((key) => {
-      formPayload.append(key, formData[key]);
-    });
-    widget.open()
-    try {
-      await axios.post('http://localhost:3000/api/demande', formPayload, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      onComplete: async (resp) => {
+        if (resp.transaction.status === 'approved') {
+          const formPayload = new FormData();
+          Object.keys(formData).forEach((key) => {
+            formPayload.append(key, formData[key]);
+          });
+  
+          try {
+            
+            await axios.post('http://localhost:3000/api/demande', formPayload, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            });
+            setFormData({
+              type: '',
+              photo: '',
+              name: '',
+              firstName: '',
+              email: '',
+              country: '',
+              phone: '',
+              intention: '',
+              prix: 0,
+              paymentMethod: '',
+            });
+            
+             window.location.href = 'http://localhost:5173/ConfirmePage';
+          } catch (error) {
+            console.error('Erreur lors de la soumission du formulaire:', error);
+            alert('Erreur lors de la soumission du formulaire : ' + error.message);
+          }
+        } else {
+          alert('Le paiement n\'a pas été approuvé.');
         }
-      });
-      setFormData({
-        type: '',
-        photo: '',
-        name: '',
-        firstName: '',
-        email: '',
-        country: '',
-        phone: '',
-        intention: '',
-        prix: 0,
-        paymentMethod: '',
-      })
-         // window.location.href = 'http://localhost:5173/ConfirmePage';
-    } catch (error) {
-      console.error('Erreur lors de la soumission du formulaire:', error);
-      alert('Erreur lors de la soumission du formulaire : ' + error.message);
-    }
+      },
+    });
+    widget.open();
   };
- 
+  
+  
 
   return (
     <div className="relative h-screen bg-gray-100">
@@ -215,10 +225,10 @@ const Homes = () => {
   <p className="text-center text-black-700 font-bold mt-2">Faire un don</p>
   <hr /><hr /><hr />
   <p className="text-center text-red-700 font-bold mt-2">Attention!!</p>
-  <p className="text-center text-black-700 font-bold mt-2">Le prélèvement par Carte Bancaire a pour devise le $ et le prélèvement par Mobile Money a pour devise le FCFA</p>
+  <p className="text-center text-black-700 font-bold mt-2">Le prélèvement par Carte Bancaire et le prélèvement par Mobile Money ont pour devise le FCFA</p>
   <br />
   <div className="mb-4">
-    <label className="block text-gray-700">Prix ($ ou FCFA)</label>
+    <label className="block text-gray-700">Montant (FCFA)</label>
     <input type="number" name="prix" className="w-full px-4 py-2 border rounded" value={formData.prix} onChange={handleChange} />
   </div>
   <div className="mb-4">
