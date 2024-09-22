@@ -25,6 +25,10 @@ import img21 from '../assets/IMG_18.jpg';
 import img22 from '../assets/IMG_19.jpg';
 import { FaTwitter, FaInstagram, FaYoutube, FaFacebook, FaTiktok } from 'react-icons/fa';
 import '../css/index.css';
+<<<<<<< HEAD
+=======
+
+>>>>>>> b6905c006fd4d1dd796616dea42c43266e63f34d
 
 
 
@@ -175,6 +179,11 @@ const Homes = () => {
           style={{ ...style, backgroundImage: `url(${item})` }}
         />
       ))}
+<<<<<<< HEAD
+=======
+
+      <div className="flex flex-col-reverse md:flex-row items-center justify-center h-full relative z-10 px-4 md:px-0">
+>>>>>>> b6905c006fd4d1dd796616dea42c43266e63f34d
         {!showForm ? (
           <animated.button onClick={handleButtonClick} className="px-6 py-3 bg-blue-500 text-white font-bold rounded md:order-1 mb-4 md:mb-0"style={springProps}>
             Faire une demande de messe
@@ -264,7 +273,11 @@ const Homes = () => {
       <option value="mobileMoney">Mobile Money</option>
     </select>
   </div>
+<<<<<<< HEAD
  <div className="flex flex-col items-center space-y-2">
+=======
+  <div className="flex flex-col items-center space-y-2">
+>>>>>>> b6905c006fd4d1dd796616dea42c43266e63f34d
   <button type="submit" className="w-full px-6 py-3 bg-blue-500 text-white font-bold rounded">
     Soumettre
   </button>
@@ -272,7 +285,11 @@ const Homes = () => {
     Fermer le formulaire
   </button>
 </div>
+<<<<<<< HEAD
  <br /><br /><br />
+=======
+  <br /><br /><br /><br />
+>>>>>>> b6905c006fd4d1dd796616dea42c43266e63f34d
   <a></a>
 </form>
 </div>
@@ -281,6 +298,7 @@ const Homes = () => {
       <div className="absolute top-4 left-4">
         <animated.img src={logo} alt="Logo" className="w-24 h-24 sm:w-32 sm:h-32" />
       </div>
+<<<<<<< HEAD
       <footer className="absolute bottom-0 left-0 w-full bg-white bg-opacity-75 text-gray-700 py-2 text-center border-t border-gray-300">
       <div className="flex justify-center items-center space-x-1 mb-1">
       <animated.div className="p-1 bg-yellow-100 shadow-md rounded-lg transform transition-transform duration-300 scale-100 shadow-l shadow-blue-500" style={springProps}>
@@ -290,6 +308,25 @@ const Homes = () => {
     </div>
         <p className="text-black-700 font-bold">SMA TOGO TV, La Nouvelle chaîne missionnaire</p>
         <p className="text-gray-500 font-bold">Contact: +228 90 89 77 87 | <a href="https://smatogo.tv" className="text-yellow-600 underline">smatogo.tv |<a className="text-blue-600 underline">© [2024] SMA TOGO TV. Tous droits réservés.</a> </a></p>
+=======
+      <footer className="absolute bottom-0 left-0 right-0 p-1 bg-white bg-opacity-75 text-center">
+      <div className="flex justify-center items-center space-x-4 mb-2">
+      <div className="p-2 bg-white shadow-md rounded-lg transform transition-transform duration-300 scale-90 shadow-l shadow-blue-300 cursor-pointer">
+        <h2 className="text-2xl font-semibold">MISSION</h2>
+        <p className="text-gray-700">Le but ultime de la SMA TOGO TV est l'évangélisation, en suivant l'exhortation de son fondateur Mgr Melchior de Marion Bresillac : "saisir toutes les occasions pour prêcher la Bonne Nouvelle".</p>
+      </div>
+      <animated.div className="p-2 bg-white shadow-md rounded-lg transform transition-transform duration-300 scale-100 shadow-xl shadow-gray-400 cursor-pointer" style={springProps}>
+        <h2 className="text-2xl font-semibold">SMA TOGO TV</h2>
+        <p className="text-gray-700">Une WEB TV pour accroître la visibilité numérique du message évangélique et promouvoir la voix de l'Église Catholique et ses activités dans la sous-région et à travers le monde.</p>
+      </animated.div>
+      <div className="p-2 bg-white shadow-md rounded-lg transform transition-transform duration-300 scale-90 shadow-l shadow-yellow-300 cursor-pointer">
+        <h2 className="text-2xl font-semibold">CREATION</h2>
+        <p className="text-gray-700">Le 19 juin 2022, lors de la fête du Saint Sacrement, l'archevêque de Lomé, Mgr Nicodème BARRIGAH-BENISSAN, a béni et inauguré la SMA TOGO TV, dont le studio se trouve à Bè-Klikamé, Lomé (Togo).</p>
+      </div>
+    </div>
+        <p className="text-black-700 font-bold">SMA TOGO TV, La Nouvelle chaîne missionnaire</p>
+        <p className="text-gray-500 font-bold">Contact: +228 90 89 77 87 | <a href="https://smatogo.tv" target="_blank" rel="noopener noreferrer" className="text-yellow-600 underline">smatogo.tv |<a className="text-blue-600 underline">© [2024] SMA TOGO TV. Tous droits réservés.</a> </a></p>
+>>>>>>> b6905c006fd4d1dd796616dea42c43266e63f34d
         <div className="flex justify-center space-x-4">
         <animated.a 
         href="https://twitter.com/smatogotv" 
@@ -301,7 +338,11 @@ const Homes = () => {
         <FaTwitter size={24} />
       </animated.a>
       <animated.a
+<<<<<<< HEAD
   href="https://instagram.com/smatogotv"
+=======
+  href="https://instagram.com/smatogo_tv"
+>>>>>>> b6905c006fd4d1dd796616dea42c43266e63f34d
   className="text-pink-500"
   target="_blank"
   rel="noopener noreferrer"
@@ -310,7 +351,11 @@ const Homes = () => {
   <FaInstagram size={24} />
 </animated.a>
       <animated.a 
+<<<<<<< HEAD
         href="https://www.youtube.com/@provincetogo" 
+=======
+        href="https://youtube.com/smatogo_tv" 
+>>>>>>> b6905c006fd4d1dd796616dea42c43266e63f34d
         className="text-red-500" 
         target="_blank" 
         rel="noopener noreferrer"
@@ -338,7 +383,11 @@ const Homes = () => {
       </animated.a>
         </div>
         <p>
+<<<<<<< HEAD
           <span className="text-black-600">Dev by: <a rel="noopener noreferrer" href="https://wa.me/22891147797" target="_blank" className="text-red-600 underline cursor-pointer">Tiger Kingsman(TK)</a> </span>
+=======
+          <span href="https://www.ATEC-sarl.com" className="text-black-600">Dev by: <a className="text-red-600 underline">ATEC sarl</a> </span>
+>>>>>>> b6905c006fd4d1dd796616dea42c43266e63f34d
         </p>
       </footer>
     </div>
