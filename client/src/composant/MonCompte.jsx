@@ -27,7 +27,7 @@ const MonCompte = () => {
           userId = decodedToken.userdata.user.id;
         }
         
-        const response = await axios.get(`http://localhost:3000/api/user/${userId}`, {
+        const response = await axios.get(`https://smatogo.tv/api/user/${userId}`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}` 
@@ -61,7 +61,7 @@ const MonCompte = () => {
         userId = decodedToken.userdata.user.id;
       }
 
-      await axios.put(`http://localhost:3000/api/user/${userId}/password`, {
+      await axios.put(`https://smatogo.tv/api/user/${userId}/password`, {
         oldPassword,
         newPassword
       }, {
@@ -98,7 +98,7 @@ const MonCompte = () => {
         username: user.username,
         email: user.email
       };
-      const response = await axios.put(`http://localhost:3000/api/user/${userId}`, updatedUser, {
+      const response = await axios.put(`https://smatogo.tv/api/user/${userId}`, updatedUser, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -115,7 +115,7 @@ const MonCompte = () => {
   const handleLogout = async () => {
     try {
       const token = window.localStorage.getItem('userAcces');
-      await axios.post('http://localhost:3000/api/logout', {}, {
+      await axios.post('https://smatogo.tv/api/logout', {}, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`

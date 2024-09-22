@@ -1,23 +1,27 @@
 {
   "development": {
-    "username": "root",
-    "password": null,
+    "username": "postgres",
+    "password": "",
     "database": "database_messe",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "postgres",
+    "port": 5432
   },
   "test": {
-    "username": "root",
-    "password": null,
+    "username": "postgres_u",
+    "password": "root",
     "database": "database_test_messe",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "postgres",
+    "port": 5432
   },
   "production": {
-    "username": "root",
-    "password": null,
+    "username": "postgres_u",
+    "password": "root",
     "database": "database_production_messe",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
+   "host": "127.0.0.1",
+    "dialect": "postgres",
+    "port": 5432
   }
 }
+

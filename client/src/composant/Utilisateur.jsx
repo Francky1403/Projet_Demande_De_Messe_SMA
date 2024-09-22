@@ -26,7 +26,7 @@ const Utilisateur = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/user'); 
+        const response = await axios.get('https://smatogo.tv/api/user'); 
         setUsers(response.data);
       } catch (error) {
         console.error('Failed to fetch users:', error);
@@ -50,9 +50,9 @@ const Utilisateur = () => {
 
   const handleModifStatus = async (utilisateurId) => {
     try {
-        await axios.put(`http://localhost:3000/api/utilisateurs/${utilisateurId}/statuts`);
+        await axios.put(`https://smatogo.tv/api/utilisateurs/${utilisateurId}/statuts`);
         toast.success('Statut mis à jour avec succès !');
-        const response = await axios.get('http://localhost:3000/api/user'); 
+        const response = await axios.get('https://smatogo.tv/api/user'); 
         setUsers(response.data)
     } catch (error) {
       console.error(`Erreur lors de la mise à jour de l'état d'activation de l'utilisateur avec l'ID ${utilisateurId}.`, error);
@@ -132,7 +132,7 @@ const Utilisateur = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/api/utilisateur', newUser);
+      const response = await axios.post('https://smatogo.tv/api/utilisateur', newUser);
       setUsers([...users, response.data.user]);
       toast.success('Utilisateur créé avec succès !');
       setNewUser({ username: '', email: '', password: '', profile: '', isActive: true });
@@ -144,9 +144,8 @@ const Utilisateur = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    console.log('Données envoyées pour la mise à jour :', selectedUser);
     try {
-      await axios.put(`http://localhost:3000/api/user/${selectedUser.id}`, selectedUser);
+      await axios.put(`https://smatogo.tv/api/user/${selectedUser.id}`, selectedUser);
       setUsers(users.map(user => user.id === selectedUser.id ? selectedUser : user));
       toast.success('Utilisateur mis à jour avec succès !');
       handleEditModalClose();
@@ -159,7 +158,7 @@ const Utilisateur = () => {
   const handlePassSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:3000/api/user/${selectedUser.id}/passwords`, {
+      await axios.put(`https://smatogo.tv/api/user/${selectedUser.id}/passwords`, {
         newPasswords: selectedUser.newPassword
       });
       setUsers(users.map(user => user.id === selectedUser.id ? { ...user, password: selectedUser.newPassword } : user));
@@ -377,6 +376,7 @@ const Utilisateur = () => {
           <option value="">Sélectionnez un profil</option>
           <option value="gestionnaire">Gestionnaire</option>
           <option value="administrateur">Administrateur</option>
+          <option value="prêtre">Prêtre</option>
         </select>
       </div>
       <button
@@ -466,6 +466,7 @@ const Utilisateur = () => {
               <option value="">Sélectionnez un profil</option>
               <option value="gestionnaire">Gestionnaire</option>
               <option value="administrateur">Administrateur</option>
+              <option value="prêtre">Prêtre</option>
             </select>
           </div>
           <button

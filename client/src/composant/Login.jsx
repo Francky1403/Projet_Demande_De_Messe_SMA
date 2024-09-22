@@ -35,10 +35,10 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-    await axios.post('http://localhost:3000/api/login', { email, password }).then((response)=>{
+    await axios.post('https://smatogo.tv/api/login', { email, password }).then((response)=>{
         window.localStorage.setItem('userAcces', response.data)
         toast.success('Connexion réussie !');
-        navigate('/statistique');
+        navigate('/messe');
       }
       );
     } catch (error) {

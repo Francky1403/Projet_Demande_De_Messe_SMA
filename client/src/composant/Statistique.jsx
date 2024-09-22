@@ -24,6 +24,7 @@ const Statistique = () => {
     totalMesseRequestsNTraite: 0,
     totalAdministrateurs: 0,
     totalGestionnaires: 0,
+    totalPrêtre: 0,
     totalmesseanif: 0,
     totalmessedeces: 0,
     totalintentionpart: 0,
@@ -41,47 +42,49 @@ const Statistique = () => {
   const fetchData = async () => {
     try {
       const responses = await Promise.all([
-        axios.get('http://localhost:3000/api/stats/total-utilisateurs'),
-        axios.get('http://localhost:3000/api/stats/total-administrateurs'),
-        axios.get('http://localhost:3000/api/stats/total-gestionnaires'),
-        axios.get('http://localhost:3000/api/stats/messe-anniversaire'),
-        axios.get('http://localhost:3000/api/stats/messe-deces'),
-        axios.get('http://localhost:3000/api/stats/intention-particuliere'),
-        axios.get('http://localhost:3000/api/stats/action-grace'),
-        axios.get('http://localhost:3000/api/stats/utilisateurs-actifs'),
-        axios.get('http://localhost:3000/api/stats/utilisateurs-inactifs'),
-        axios.get('http://localhost:3000/api/stats/total-demande'),
-        axios.get('http://localhost:3000/api/stats/demandes-traitees'),
-        axios.get('http://localhost:3000/api/stats/demandes-non-traitees'),
-        axios.get('http://localhost:3000/api/messe-monthly-stats'),
-        axios.get('http://localhost:3000/api/messe-repartition'),
-        axios.get('http://localhost:3000/api/stats/mensuel-demandes'),
-        axios.get('http://localhost:3000/api/total-prix'),
-        axios.get('http://localhost:3000/api/total-cb'),
-        axios.get('http://localhost:3000/api/total-mm')
+        axios.get('https://smatogo.tv/api/stats/total-utilisateurs'),
+        axios.get('https://smatogo.tv/api/stats/total-administrateurs'),
+        axios.get('https://smatogo.tv/api/stats/total-gestionnaires'),
+        axios.get('https://smatogo.tv/api/stats/total-pretre'),
+        axios.get('https://smatogo.tv/api/stats/messe-anniversaire'),
+        axios.get('https://smatogo.tv/api/stats/messe-deces'),
+        axios.get('https://smatogo.tv/api/stats/intention-particuliere'),
+        axios.get('https://smatogo.tv/api/stats/action-grace'),
+        axios.get('https://smatogo.tv/api/stats/utilisateurs-actifs'),
+        axios.get('https://smatogo.tv/api/stats/utilisateurs-inactifs'),
+        axios.get('https://smatogo.tv/api/stats/total-demande'),
+        axios.get('https://smatogo.tv/api/stats/demandes-traitees'),
+        axios.get('https://smatogo.tv/api/stats/demandes-non-traitees'),
+        axios.get('https://smatogo.tv/api/messe-monthly-stats'),
+        axios.get('https://smatogo.tv/api/messe-repartition'),
+        axios.get('https://smatogo.tv/api/stats/mensuel-demandes'),
+        axios.get('https://smatogo.tv/api/total-prix'),
+        axios.get('https://smatogo.tv/api/total-cb'),
+        axios.get('https://smatogo.tv/api/total-mm')
       ]);
 
-      const messeData = responses[12].data.messeData || [];
-      const pieData = responses[13].data.pieData || [];
-      const monthlyData = formatMonthlyData(responses[14].data);
+        const messeData = responses[13].data.messeData || [];
+      const pieData = responses[14].data.pieData || [];
+      const monthlyData = formatMonthlyData(responses[15].data);
 
-      const totalAmount = responses[15].data.total || 0;
-      const totalAmountCB = responses[16].data.total || 0;
-      const totalAmountMobile = responses[17].data.total || 0;
+      const totalAmount = responses[16].data.total || 0;
+      const totalAmountCB = responses[17].data.total || 0;
+      const totalAmountMobile = responses[18].data.total || 0;
 
       setStats({
         totalUsers: responses[0].data.totalUtilisateurs || 0,
         totalAdministrateurs: responses[1].data.totalAdministrateurs || 0,
         totalGestionnaires: responses[2].data.totalGestionnaires || 0,
-        totalmesseanif: responses[3].data.totalAnniversaire || 0,
-        totalmessedeces: responses[4].data.totalDeces || 0,
-        totalintentionpart: responses[5].data.totalIntentionParticuliere || 0,
-        totalactiongrace: responses[6].data.totalActionGrace || 0,
-        utilisateursActifs: responses[7].data.utilisateursActifs || 0,
-        utilisateursInActifs: responses[8].data.utilisateursInactifs || 0,
-        totalMesseRequests: responses[9].data.totalDemande || 0,
-        totalMesseRequestsTraite: responses[10].data.demandesTraitees || 0,
-        totalMesseRequestsNTraite: responses[11].data.demandesNonTraitees || 0,
+        totalPrêtre: responses[3].data.totalPrêtre || 0,
+        totalmesseanif: responses[4].data.totalAnniversaire || 0,
+        totalmessedeces: responses[5].data.totalDeces || 0,
+        totalintentionpart: responses[6].data.totalIntentionParticuliere || 0,
+        totalactiongrace: responses[7].data.totalActionGrace || 0,
+        utilisateursActifs: responses[8].data.utilisateursActifs || 0,
+        utilisateursInActifs: responses[9].data.utilisateursInactifs || 0,
+        totalMesseRequests: responses[10].data.totalDemande || 0,
+        totalMesseRequestsTraite: responses[11].data.demandesTraitees || 0,
+        totalMesseRequestsNTraite: responses[12].data.demandesNonTraitees || 0,
         messeData,
         pieData,
         totalAmount,
@@ -112,6 +115,7 @@ const Statistique = () => {
   const userData = [
     { name: 'Administrateur', value: stats.totalAdministrateurs, color: '#0088FE' },
     { name: 'Gestionnaire', value: stats.totalGestionnaires, color: '#00C49F' },
+    { name: 'Prêtre', value: stats.totalPrêtre, color: '#FF8042' },
   ];
 
   const MesseData = [
@@ -216,3 +220,4 @@ const StatCard = ({ title, value }) => (
 );
 
 export default Statistique;
+

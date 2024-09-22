@@ -17,15 +17,19 @@ const port = process.env.PORT || 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(cors({
-  origin: /http:\/\/localhost/
-}));
+app.use(cors());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Autoriser toutes les origines
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
 app.options('*', cors());
 
 // Configuration du stockage des fichiers
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-      cb(null, 'uploads/'); 
+      cb(null, '/var/www/html/uploads'); 
   },
   filename: function (req, file, cb) {
     var uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -105,7 +109,7 @@ app.get('/api/messe', async (req, res) => {
 
     const requestsWithPhotoUrl = requests.map(request => ({
       ...request.toJSON(),
-      photoUrl: request.photo ? `${req.protocol}://${req.get('host')}/uploads/${request.photo}` : null,
+      photoUrl: request.photo ? `https://${req.get('host')}/uploads/${request.photo}` : null,
     }));
 
     res.json(requestsWithPhotoUrl);
@@ -372,6 +376,16 @@ app.get('/api/stats/total-administrateurs', async (req, res) => {
   }
 });
 
+// Route pour obtenir le nombre total prêtre
+app.get('/api/stats/total-pretre', async (req, res) => {
+  try {
+    const totalPrêtre = await User.count({ where: { profile: 'prêtre' } });
+    res.json({ totalPrêtre });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur lors de la récupération du nombre d\'administrateurs' });
+  }
+});
+
 // Route total messe anniversaire
 app.get('/api/stats/messe-anniversaire', async (req, res) => {
   try {
@@ -591,6 +605,42 @@ app.put('/api/utilisateurs/:id/statuts', async (req, res) => {
   }
 });
 
+// Fonction pour créer un administrateur au démarrage du serveur
+async function creerAdministrateur() {
+  try {
+    // Vérifier s'il existe déjà un administrateur
+    const adminExiste = await User.findOne({ where: { email: 'administrateurfirst@smatogo.tv' } });
+    
+    if (!adminExiste) {
+      const motDePasseHash = await bcrypt.hash('adminpassword', 10);
+      const nouvelAdmin = await User.create({
+        username: 'Admin',
+        email: 'administrateurfirst@smatogo.tv',
+        password: motDePasseHash,
+        profil: 'administrateur',
+        IsActive: true,
+      });
+      console.log('Administrateur créé avec succès:', nouvelAdmin.email);
+    } else {
+      console.log('Administrateur déjà existant');
+    }
+  } catch (error) {
+    console.error('Erreur lors de la création de l\'administrateur:', error);
+  }
+}
+
+// Connexion à la base de données et démarrage du serveur
+sequelize.sync({ force: false }).then(async () => {
+  await creerAdministrateur(); // Appel de la fonction pour créer l'administrateur
+  app.listen(port, () => {
+    console.log(`Serveur démarré sur le port ${port}`);
+  });
+}).catch((error) => {
+
+  console.error('Impossible de démarrer le serveur:', error);
+});
+
+/*
 app.listen(port, () => {
   console.log(`Serveur en cours d'exécution sur le port ${port}`);
-});
+});*/

@@ -16,6 +16,14 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
+sequelize.sync({ force: false }) 
+  .then(() => {
+    console.log('Base de données synchronisée');
+  })
+  .catch((err) => {
+    console.error('Erreur lors de la synchronisation de la base de données:', err);
+  });
+
 fs
   .readdirSync(__dirname)
   .filter(file => {

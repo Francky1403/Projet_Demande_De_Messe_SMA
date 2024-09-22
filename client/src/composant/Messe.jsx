@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import '../css/admin.css';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faDownload, faTimes, } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faDownload, faTimes, faImage } from '@fortawesome/free-solid-svg-icons';
 import Modal from 'react-modal';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import 'jspdf-autotable';
 import Papa from 'papaparse';
+import {jwtDecode} from 'jwt-decode';
 
 
 const Messe = () => {
@@ -22,7 +23,7 @@ const Messe = () => {
     
     const fetchRequests = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/messe');
+        const response = await axios.get('https://smatogo.tv/api/messe');
         setRequests(response.data);
       } catch (error) {
         console.error('Failed to fetch requests:', error);
@@ -55,8 +56,8 @@ const Messe = () => {
 
   const toggleRequestStatus = async (requestId) => {
   try {
-    await axios.put(`http://localhost:3000/api/demandes/${requestId}/traiter`);
-    const response = await axios.get('http://localhost:3000/api/messe');
+    await axios.put(`https://smatogo.tv/api/demandes/${requestId}/traiter`);
+    const response = await axios.get('https://smatogo.tv/api/messe');
         setRequests(response.data);
   } catch (error) {
     console.error('Échec de la mise à jour du statut de la demande:', error);   
@@ -133,6 +134,39 @@ const Messe = () => {
       ]
     });
     doc.save(`${request.type}_${request.name}_details.pdf`);
+  };
+
+  const handleDownloadRequestImage = async (request) => {
+    if (request.photoUrl) {
+      const image = new Image();
+      image.crossOrigin = 'Anonymous'; // Pour les images provenant d'un domaine différent
+      image.src = request.photoUrl;
+  
+      await new Promise((resolve) => {
+        image.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = image.width;
+          canvas.height = image.height;
+          ctx.drawImage(image, 0, 0);
+  
+          // Obtenir l'extension de l'image (jpg ou png)
+          const ext = request.photoUrl.split('.').pop().toLowerCase();
+          const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
+  
+          // Convertir l'image en base64
+          const imgData = canvas.toDataURL(mimeType);
+  
+          // Créer un lien de téléchargement
+          const link = document.createElement('a');
+          link.href = imgData;
+          link.download = `image_${request.name}.${ext}`;
+          link.click();
+  
+          resolve();
+        };
+      });
+    }
   };
   
   const handleDownloadTablesPDF = async () => {
@@ -229,6 +263,14 @@ const Messe = () => {
     document.body.removeChild(link);
   };
 
+  const token = window.localStorage.getItem('userAcces');
+  let userProfile = null;
+
+  if (token) {
+    const decodedToken = jwtDecode(token);
+    userProfile = decodedToken.userdata.user.profile; 
+  }
+
   return (
     <div className="p-4 sm:p-8 bg-gray-100 min-h-screen">
       <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-center">Demandes De Messe</h2>
@@ -243,7 +285,7 @@ const Messe = () => {
         />
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1200px] bg-white shadow-md rounded mb-4">
+        <table className="w-full min-w-[1300px] bg-white shadow-md rounded mb-4">
           <thead>
             <tr>
               <th className="px-2 sm:px-2 py-2">Type de Messe</th>
@@ -253,9 +295,17 @@ const Messe = () => {
               <th className="px-2 sm:px-2 py-2">Email</th>
               <th className="px-2 sm:px-2 py-2">Pays</th>
               <th className="px-2 sm:px-2 py-2">Numéro de Téléphone</th>
-              <th className="px-2 sm:px-2 py-2">Intention de Messe</th>
+             {userProfile !== 'gestionnaire' && (
+              <>
+              <th className="px-3 sm:px-3 py-3">Intention de Messe</th>
+             </>
+             )}
               <th className="px-2 sm:px-2 py-2">Type de Paiement</th>
+             {userProfile !== 'gestionnaire' && (
+             <>
               <th className="px-2 sm:px-2 py-2">Montant</th>
+             </>
+             )}
               <th className="px-2 sm:px-2 py-2">Date</th>
               <th className="px-2 sm:px-2 py-2">Statut</th>
               <th className="px-2 sm:px-2 py-2">Action</th>
@@ -273,9 +323,17 @@ const Messe = () => {
                 <td className="border px-2 sm:px-2 py-2">{request.email}</td>
                 <td className="border px-2 sm:px-2 py-2">{request.country}</td>
                 <td className="border px-2 sm:px-2 py-2">{request.phone}</td>
-                <td className="border px-2 sm:px-2 py-2">{request.intention}</td>
+                {userProfile !== 'gestionnaire' && (
+                <>
+                <td className="border px-3 sm:px-3 py-3">{request.intention}</td>
+                </>
+                )}
                 <td className="border px-2 sm:px-2 py-2">{request.payment}</td>
+               {userProfile !== 'gestionnaire' && (
+               <>
                 <td className="border px-2 sm:px-2 py-2">{request.prix}</td>
+               </>
+               )}
                 <td className="border px-2 sm:px-2 py-2">{new Date(request.createdAt).toLocaleDateString()}</td>
                 <td className="border px-2 sm:px-2 py-2">
                   <button 
@@ -285,12 +343,15 @@ const Messe = () => {
                     {request.traité ? 'En attente' : 'Traité' }
                   </button>
                 </td>
-                <td className="border px-2 sm:px-2 py-2">
+                <td className="border px-3 sm:px-3 py-3">
                 <button onClick={() => handleViewModalOpen(request)} className="text-blue-700">
                     <FontAwesomeIcon icon={faEye} />
                   </button>
                   <button onClick={() => handleDownloadRequestPDF(request)} className='text-green-700'>
                     <FontAwesomeIcon icon={faDownload} />
+                  </button>
+                  <button onClick={() => handleDownloadRequestImage(request)} className='text-red-900'>
+                    <FontAwesomeIcon icon={faImage} />
                   </button>
                 </td>
               </tr>

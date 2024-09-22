@@ -60,6 +60,7 @@ const Sidebar = () => {
 
         {/* Navigation Links */}
         <nav className="mt-4 flex flex-col space-y-2">
+          {userProfile === 'administrateur' && (
           <Link
             to="/statistique"
             className="flex items-center p-4 hover:bg-gray-700 rounded transition-colors"
@@ -69,6 +70,7 @@ const Sidebar = () => {
             <FontAwesomeIcon icon={faChartBar} className="mr-3" />
             Statistique
           </Link>
+          )}
           <Link
             to="/messe"
             className="flex items-center p-4 hover:bg-gray-700 rounded transition-colors"
